@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Signup — Go-Pin</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="header">
+<div class="container top">
+<div class="logo">Go-Pin</div>
+<nav class="nav"><a href="index.html">Store</a> <a href="login.html">Login</a></nav>
+</div>
+</header>
+
+
+<main class="container">
+<section class="card form-card">
+<h2>Daftar Akun</h2>
+<div class="muted">Isi data untuk otomatis menyimpan nama & kamar ke profil</div>
+<div style="margin-top:12px;display:grid;gap:8px">
+<input id="name" placeholder="Nama lengkap" />
+<input id="room" placeholder="Kamar / Asrama" />
+<input id="email" placeholder="Email" />
+<input id="password" placeholder="Password (min 6)" type="password" />
+<button id="signupBtn" class="btn primary">Sign Up</button>
+</div>
+</section>
+</main>
+
+
+<footer class="container muted small">Back to store after signing up.</footer>
+
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="firebase.js"></script>
+<script>
+document.getElementById('signupBtn').addEventListener('click', async ()=>{
+const name = document.getElementById('name').value.trim();
+const room = document.getElementById('room').value.trim();
+const email = document.getElementById('email').value.trim();
+const password = document.getElementById('password').value;
+if(!email || !password || password.length < 6) return alert('Email & password (min 6) wajib');
+try{
+const cred = await auth.createUserWithEmailAndPassword(email, password);
+const uid = cred.user.uid;
+// save profile to collection named `user` (requested)
+await db.collection('user').doc(uid).set({ name, room, email, role: 'user' });
+alert('Register sukses. Anda login otomatis.');
+location.href = 'index.html';
+}catch(err){ alert('Gagal: '+err.message); }
+});
+</script>
+</body>
+</html>
