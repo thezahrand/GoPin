@@ -1,538 +1,62 @@
-
-
 <!doctype html>
-<html lang="id">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Koperasi Delivery — Shop & Admin</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#f6f8fb;--card:#fff;--accent:#0b7b4f;--muted:#6b7280;--danger:#e24}
-    *{box-sizing:border-box}
-    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:var(--bg);color:#111}
-    header{background:linear-gradient(90deg,var(--accent), #0ea37f);color:#fff;padding:18px 20px}
-    .container{max-width:1100px;margin:18px auto;padding:0 16px}
-    .hero{display:flex;align-items:center;gap:16px}
-    .hero h1{margin:0;font-size:20px}
-    .layout{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:16px}
-    .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(12,15,20,0.06)}
-    .controls{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-    .controls select, .controls input{padding:10px;border-radius:10px;border:1px solid #e6e9ef;background:#fff}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-
-    /* product card modern */
-    .product-card{border-radius:12px;overflow:hidden;border:1px solid #f0f3f8;display:flex;flex-direction:column}
-    .product-image{height:160px;background:#f4f7fb;display:flex;align-items:center;justify-content:center}
-    .product-image img{max-width:100%;max-height:100%;object-fit:cover}
-    .product-body{padding:12px;display:flex;gap:8px;align-items:center}
-    .product-body .meta{flex:1}
-    .product-body h3{margin:0;font-size:15px}
-    .product-body p{margin:6px 0 0 0;color:var(--muted);font-size:13px}
-    .price{font-weight:700;margin-top:8px}
-    .product-actions{display:flex;gap:8px;margin-top:10px}
-    .btn{padding:8px 10px;border-radius:10px;border:0;cursor:pointer}
-    .btn-primary{background:var(--accent);color:#fff}
-    .btn-ghost{background:#fff;border:1px solid #e6e9ef}
-
-    /* cart */
-    .cart-title{display:flex;align-items:center;justify-content:space-between}
-    .cart-list{max-height:420px;overflow:auto;margin-top:8px}
-    .cart-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed #eee}
-    .cart-item .left{flex:1}
-    .qty{display:inline-flex;align-items:center;gap:6px}
-    .qty button{padding:6px 8px;border-radius:6px;border:1px solid #ddd;background:#fff}
-
-    /* admin */
-    .admin-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-    .file-input{padding:6px;border-radius:8px;border:1px dashed #e6e9ef;background:#fff}
-    .badge{display:inline-block;padding:6px 8px;border-radius:999px;background:#f0f3f8;font-size:12px}
-
-    footer{max-width:1100px;margin:18px auto;color:var(--muted);padding:0 16px}
-
-    .topbar{display:flex;gap:12px;align-items:center}
-    .link{color:#fff;text-decoration:none}
-    .muted{color:var(--muted)}
-
-    @media (max-width:900px){.layout{grid-template-columns:1fr}.cart{order:-1}}
-  </style>
-</head>
-<body>
-  <header>
-    <div class="container hero">
-      <div style="flex:1">
-        <h1>GO-PIN</h1>
-        <div class="muted">Belanja via web & checkout ke WhatsApp. Admin panel untuk manage stok.</div>
-      </div>
-      <div class="topbar">
-        <div id="userArea"><button id="loginBtn" class="btn btn-ghost">Login</button></div>
-      </div>
-    </div>
-  </header>
-
-  <main class="container">
-    <div id="app">
-      <!-- Shop Layout -->
-      <div id="shopView" class="layout">
-        <section>
-          <div class="card">
-            <div class="controls">
-              <select id="categoryFilter"><option value="all">Semua kategori</option></select>
-              <input id="search" placeholder="Cari produk..." />
-              <div style="margin-left:auto;font-size:13px;color:var(--muted)">Total produk: <span id="prodCount">0</span></div>
-            </div>
-
-            <div id="productGrid" class="grid"></div>
-          </div>
-        </section>
-
-        <aside class="card">
-          <div class="cart-title">
-            <h3>Keranjang</h3>
-            <div class="muted small">tersimpan di browser</div>
-          </div>
-
-          <div class="cart-list" id="cartList"><div class="muted">Keranjang kosong</div></div>
-
-          <div style="margin-top:8px">
-            <div class="small muted">Nama pembeli</div>
-            <input id="buyerName" placeholder="Contoh: Budi" />
-            <div class="small muted" style="margin-top:8px">Kamar / Asrama</div>
-            <input id="room" placeholder="Contoh: Kamar A-12" />
-          </div>
-
-          <div class="checkout-row">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-              <div>
-                <div class="muted small">Subtotal</div>
-                <div id="subtotalText" style="font-weight:700">Rp0</div>
-              </div>
-              <div style="text-align:right">
-                <div class="muted small">Ongkir</div>
-                <div><input id="shippingFee" value="2000" style="width:92px" /></div>
-              </div>
-            </div>
-
-            <div style="margin-top:12px;display:flex;gap:8px">
-              <button class="btn btn-primary" id="checkoutBtn">Checkout via WhatsApp</button>
-              <button id="copyMsg" class="btn btn-ghost">Copy pesan</button>
-            </div>
-
-            <div style="margin-top:8px;font-size:13px;color:var(--muted)">Catatan: Pembayaran via COD / transfer melalui chat WA</div>
-          </div>
-        </aside>
-      </div>
-
-      <!-- ADMIN VIEW (route #/admin) -->
-      <div id="adminView" style="display:none">
-        <div class="card" style="margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h2>Admin Dashboard</h2>
-            <div><button id="logoutBtn" class="btn btn-ghost">Logout</button></div>
-          </div>
-          <div class="muted">Tambah/edit produk, upload gambar, hide/unhide, lihat orders.</div>
-        </div>
-
-        <div class="card" style="margin-bottom:12px">
-          <h3>Tambah Produk</h3>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-            <input id="pName" placeholder="Nama produk" style="flex:1" />
-            <input id="pPrice" placeholder="Harga (angka)" style="width:140px" />
-            <input id="pStock" placeholder="Stok" style="width:100px" />
-            <input id="pCategory" placeholder="Kategori" style="width:160px" />
-            <input id="pNote" placeholder="Catatan (opsional)" style="width:200px" />
-            <input id="pImage" type="file" accept="image/*" class="file-input" />
-            <button id="addProduct" class="btn btn-primary">Tambah</button>
-          </div>
-        </div>
-
-        <div class="card" id="adminProducts" style="margin-bottom:12px">
-          <h3>Produk</h3>
-          <div id="adminProductList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:8px"></div>
-        </div>
-
-        <div class="card" id="adminOrders">
-          <h3>Orders</h3>
-          <div id="orderList" style="margin-top:8px"></div>
-        </div>
-      </div>
-
-    </div>
-  </main>
-
-  <footer>
-    <div class="container small muted">INI FOOTER </div>
-  </footer>
-
-  <!-- Firebase & App Script -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
-
-  <script>
-    /*************************************************************************
-     * CONFIG: ganti ini dengan config firebase project kalian
-     *************************************************************************/
-    const firebaseConfig = {
- 
-
-      apiKey: "AIzaSyAyid18j6ylh3cYWJcTXhzVO0oZJz5COUY",
-      authDomain: "gopin-incen.firebaseapp.com",
-      projectId: "gopin-incen",
-      storageBucket: "gopin-incen.firebasestorage.app",
-      messagingSenderId: "334708169738",
-      appId: "1:334708169738:web:b89e56d663411049a293f3",
+<section class="layout">
+<div class="card">
+<div class="controls">
+<select id="categoryFilter"><option value="all">Semua kategori</option></select>
+<input id="search" placeholder="Cari produk..." />
+<div class="muted" style="margin-left:auto">Total: <span id="prodCount">0</span></div>
+</div>
+<div id="productGrid" class="grid"></div>
+</div>
 
 
-    };
-    const ADMIN_WHATSAPP_NUMBER = "6282163556632"; // ganti nomor admin
-    /*************************************************************************/
+<aside class="card sidebar">
+<h3>Keranjang</h3>
+<div id="cartList" class="cart-list"><div class="muted">Keranjang kosong</div></div>
 
-    // init firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const storage = firebase.storage();
 
-    // simple SPA routing
-    function showRoute(){
-      const hash = location.hash || '';
-      if(hash.startsWith('#/admin')){ document.getElementById('shopView').style.display='none'; document.getElementById('adminView').style.display='block'; }
-      else { document.getElementById('shopView').style.display='grid'; document.getElementById('adminView').style.display='none'; }
-    }
-    window.addEventListener('hashchange', showRoute); showRoute();
+<div style="margin-top:10px">
+<label class="small muted">Nama</label>
+<input id="buyerName" placeholder="Nama" />
+<label class="small muted">Kamar</label>
+<input id="room" placeholder="Kamar" />
+</div>
 
-    // ======= PRODUCT UI & CART (client-side) =======
-    const categoryFilter = document.getElementById('categoryFilter');
-    const productGrid = document.getElementById('productGrid');
-    const prodCount = document.getElementById('prodCount');
-    const searchInput = document.getElementById('search');
 
-    const LS_KEY = 'koperasi_cart_v2';
-    let cart = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+<div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+<div>
+<div class="muted small">Subtotal</div>
+<div id="subtotalText" class="price">Rp0</div>
+</div>
+<div>
+<div class="muted small">Ongkir</div>
+<input id="shippingFee" value="2000" style="width:88px" />
+</div>
+</div>
 
-    function formatRupiah(num){ return 'Rp' + Number(num).toLocaleString('id-ID'); }
 
-    // real-time load products from firestore
-    let PRODUCTS = [];
-    function initProductsListener(){
-      db.collection('products').orderBy('name').onSnapshot(snapshot=>{
-        PRODUCTS = [];
-        snapshot.forEach(doc=>{ const p = doc.data(); p.id = doc.id; PRODUCTS.push(p); });
-        renderCategories(); renderProducts(); renderAdminProducts();
-      });
-    }
-    initProductsListener();
+<div style="margin-top:12px;display:flex;gap:8px">
+<button id="checkoutBtn" class="btn primary">Checkout via WhatsApp</button>
+<button id="copyMsg" class="btn">Copy pesan</button>
+</div>
 
-    function renderCategories(){
-      const cats = Array.from(new Set(PRODUCTS.map(p=>p.category))).sort();
-      categoryFilter.innerHTML = '<option value="all">Semua kategori</option>';
-      cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; categoryFilter.appendChild(o); });
-    }
 
-    function renderProducts(){
-      const q = searchInput.value.trim().toLowerCase();
-      const cat = categoryFilter.value || 'all';
-      productGrid.innerHTML = '';
-      const filtered = PRODUCTS.filter(p => (!p.hidden) && (cat==='all' || p.category===cat) && (p.name.toLowerCase().includes(q) || (p.note||'').toLowerCase().includes(q)));
-      prodCount.textContent = filtered.length;
-      filtered.forEach(p=>{
-        const el = document.createElement('div'); el.className='product-card';
-        el.innerHTML = `
-          <div class="product-image">${p.imageUrl? `<img src="${p.imageUrl}" alt="${p.name}">` : `<div style="font-weight:700;color:#9aa3b2">${(p.name.split(' ').map(w=>w[0]).slice(0,2).join(''))}</div>`}</div>
-          <div class="product-body">
-            <div class="meta">
-              <h3>${p.name}</h3>
-              <p class="muted">${p.category} • Stok: ${p.stock ?? '—'}</p>
-              <div class="price">${formatRupiah(p.price)}</div>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end">
-              <div class="product-actions">
-                <button class="btn btn-ghost" data-id="${p.id}" data-action="info">Info</button>
-                <button class="btn btn-primary" data-id="${p.id}" data-action="add">Tambah</button>
-              </div>
-            </div>
-          </div>
-        `;
-        productGrid.appendChild(el);
-      });
-    }
+<div class="muted small" style="margin-top:8px">Catatan: Pembayaran via COD / transfer melalui chat WA</div>
+</aside>
+</section>
+</main>
 
-    categoryFilter.addEventListener('change', renderProducts);
-    searchInput.addEventListener('input', renderProducts);
 
-    // cart operations
-    function saveCart(){ localStorage.setItem(LS_KEY, JSON.stringify(cart)); }
-    function addToCart(id, qty=1){ const prod = PRODUCTS.find(p=>p.id===id); if(!prod) { alert('Produk tidak ditemukan'); return }
-      if(prod.stock !== undefined && prod.stock <= 0){ alert('Stok kosong'); return }
-      cart[id] = (cart[id]||0) + qty; saveCart(); renderCart(); }
-    function setQty(id, qty){ if(qty<=0){ delete cart[id]; } else cart[id]=qty; saveCart(); renderCart(); }
-    function removeFromCart(id){ delete cart[id]; saveCart(); renderCart(); }
+<footer class="container muted small">Made for school koperasi — Go-Pin</footer>
 
-    document.body.addEventListener('click', (e)=>{
-      const btn = e.target.closest('button[data-action]');
-      if(!btn) return;
-      const action = btn.dataset.action; const id = btn.dataset.id;
-      if(action==='add') addToCart(id,1);
-      if(action==='info'){
-        const p = PRODUCTS.find(x=>x.id===id); if(!p) return; alert(`${p.name}\nHarga: ${formatRupiah(p.price)}\nStok: ${p.stock}\nCatatan: ${p.note|| '-'} `);
-      }
-    });
 
-    const cartList = document.getElementById('cartList');
-    const subtotalText = document.getElementById('subtotalText');
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 
-    function renderCart(){
-      const ids = Object.keys(cart); if(ids.length===0){ cartList.innerHTML='<div class="muted">Keranjang kosong</div>'; subtotalText.textContent='Rp0'; return }
-      cartList.innerHTML=''; let subtotal=0;
-      ids.forEach(id=>{
-        const qty = cart[id]; const prod = PRODUCTS.find(p=>p.id===id); if(!prod) return;
-        subtotal += prod.price * qty;
-        const item = document.createElement('div'); item.className='cart-item';
-        item.innerHTML = `
-          <div class="left">
-            <div style="font-weight:700">${prod.name}</div>
-            <div class="muted small">${formatRupiah(prod.price)} • ${prod.category}</div>
-          </div>
-          <div style="text-align:right">
-            <div class="qty">
-              <button data-action="dec" data-id="${id}">-</button>
-              <div style="min-width:26px;text-align:center">${qty}</div>
-              <button data-action="inc" data-id="${id}">+</button>
-            </div>
-            <div style="margin-top:6px">${formatRupiah(prod.price*qty)}</div>
-            <div><button data-action="remove" data-id="${id}" class="btn btn-ghost" style="margin-top:6px">Hapus</button></div>
-          </div>
-        `;
-        cartList.appendChild(item);
-      });
-      subtotalText.textContent = formatRupiah(subtotal);
-    }
 
-    cartList.addEventListener('click', (e)=>{
-      const action = e.target.closest('button')?.dataset.action; const id = e.target.closest('button')?.dataset.id; if(!action) return;
-      if(action==='inc') setQty(id, (cart[id]||0)+1);
-      if(action==='dec') setQty(id, (cart[id]||0)-1);
-      if(action==='remove') removeFromCart(id);
-    });
-
-    renderProducts(); renderCart();
-
-    // ======= CHECKOUT (WA) & ORDER RECORD =======
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    const copyMsgBtn = document.getElementById('copyMsg');
-    const buyerNameInput = document.getElementById('buyerName');
-    const roomInput = document.getElementById('room');
-    const shippingFeeInput = document.getElementById('shippingFee');
-
-    function generateMessage(){
-      const name = buyerNameInput.value.trim() || '---';
-      const room = roomInput.value.trim() || '---';
-      const ids = Object.keys(cart);
-      if(ids.length===0) return null;
-      let subtotal=0; let lines=[]; let i=1;
-      ids.forEach(id=>{ const prod = PRODUCTS.find(p=>p.id===id); const qty = cart[id]; if(!prod) return; lines.push(`${i}. ${prod.name} — ${qty} pcs — ${formatRupiah(prod.price*qty)}`); subtotal += prod.price*qty; i++; });
-      const shipping = Number(shippingFeeInput.value)||0; const total = subtotal + shipping;
-      let msg = `=== PESANAN BARU ===\nNama: ${name}\nKamar: ${room}\n\n`;
-      msg += lines.join('\n') + '\n\n';
-      msg += `Subtotal: ${formatRupiah(subtotal)}\nOngkir: ${formatRupiah(shipping)}\nTotal: ${formatRupiah(total)}\n`;
-      msg += '====================';
-      return {text:msg, subtotal, shipping, total, items: ids.map(id=>({id, qty:cart[id], product: PRODUCTS.find(p=>p.id===id)})) };
-    }
-
-    checkoutBtn.addEventListener('click', async ()=>{
-      const payload = generateMessage(); if(!payload){ alert('Keranjang kosong!'); return }
-      // if user logged in, save order to firestore
-      const user = auth.currentUser;
-      let userId = null;
-      if(user){ userId = user.uid; try{ await db.collection('orders').add({ userId, name: buyerNameInput.value || '', room: roomInput.value || '', items: payload.items.map(i=>({id:i.id, name:i.product.name, qty:i.qty, price:i.product.price})), subtotal: payload.subtotal, shipping: payload.shipping, total: payload.total, status: 'pending', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); }catch(err){ console.error('save order failed',err); }
-      }
-      const encoded = encodeURIComponent(payload.text);
-      const waUrl = `https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${encoded}`;
-      window.open(waUrl, '_blank');
-    });
-
-    copyMsgBtn.addEventListener('click', ()=>{
-      const payload = generateMessage(); if(!payload){ alert('Keranjang kosong!'); return }
-      navigator.clipboard.writeText(payload.text).then(()=> alert('Pesan disalin ke clipboard. Buka WhatsApp untuk mengirim.') ).catch(()=> alert('Gagal menyalin pesan.'));
-    });
-
-    // ======= AUTH (email/password) & prefill user data =======
-    const userArea = document.getElementById('userArea');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-
-    function showUser(user){
-      if(user){
-        // fetch user doc for profile (name, room, role)
-        db.collection('users').doc(user.uid).get().then(doc=>{
-          const data = doc.exists ? doc.data() : {};
-          userArea.innerHTML = `<div style="color:#fff">${(data.name||user.email)} <span class=\"badge\">${data.role||'user'}</span> • <a href=\"#/admin\" style=\"color:#fff;margin-left:8px\">Admin</a></div>`;
-          // if logged-in user has name/room, auto-fill
-          if(data.name) buyerNameInput.value = data.name;
-          if(data.room) roomInput.value = data.room;
-        });
-      } else {
-        userArea.innerHTML = `<button id="loginBtn2" class="btn btn-ghost">Login</button>`;
-        document.getElementById('loginBtn2').addEventListener('click', openLoginModal);
-      }
-    }
-
-    auth.onAuthStateChanged(user=>{ if(user) showUser(user); else showUser(null); });
-
-    // Simple login modal using prompt (kecepatan MVP). For production you would use a proper modal.
-    function openLoginModal(){
-      const mode = prompt('Ketik "r" untuk register atau tekan Enter untuk login');
-      if(mode === 'r'){
-        const email = prompt('Masukkan email'); const pass = prompt('Password (min 6)'); const name = prompt('Nama (opsional)'); const room = prompt('Kamar (opsional)');
-        if(!email || !pass) return alert('Email & password wajib');
-        auth.createUserWithEmailAndPassword(email, pass).then(cred=>{
-          // save user profile
-          db.collection('users').doc(cred.user.uid).set({ name: name||'', room: room||'', role: 'user' });
-          alert('Register sukses. Anda otomatis login.');
-        }).catch(err=>alert('Gagal register: '+err.message));
-      } else {
-        const email = prompt('Email'); const pass = prompt('Password');
-        auth.signInWithEmailAndPassword(email, pass).then(()=>{ alert('Login sukses'); }).catch(err=>alert('Gagal login: '+err.message));
-      }
-    }
-
-    // bind initial login button (header)
-    document.addEventListener('click', (e)=>{ if(e.target && e.target.id === 'loginBtn') openLoginModal(); if(e.target && e.target.id === 'logoutBtn') auth.signOut(); });
-
-    // ======= ADMIN CRUD =======
-    const addProductBtn = document.getElementById('addProduct');
-    const pImageInput = document.getElementById('pImage');
-
-    // helpers
-    function isAdminUser(user){
-      if(!user) return false;
-      // check users collection role
-      // NOTE: this reads once; for stronger security enforce rules server-side
-      return db.collection('users').doc(user.uid).get().then(doc=>{ const d = doc.exists?doc.data():{}; return d.role === 'admin'; });
-    }
-
-    // require admin when opening adminView
-    async function checkAdminEnter(){
-      const user = auth.currentUser;
-      if(!user) { alert('Anda harus login sebagai admin'); location.hash = '' ; return false }
-      const ok = await isAdminUser(user);
-      if(!ok){ alert('Anda bukan admin'); location.hash = ''; return false }
-      return true;
-    }
-
-    window.addEventListener('hashchange', async ()=>{ if(location.hash.startsWith('#/admin')){ const ok = await checkAdminEnter(); if(!ok) return; } });
-
-    addProductBtn.addEventListener('click', async ()=>{
-      const name = document.getElementById('pName').value.trim(); const price = Number(document.getElementById('pPrice').value||0); const stock = Number(document.getElementById('pStock').value||0); const category = document.getElementById('pCategory').value.trim() || 'Umum'; const note = document.getElementById('pNote').value.trim();
-      if(!name || !price) return alert('Nama & harga wajib');
-      const file = pImageInput.files[0];
-      let imageUrl = '';
-      try{
-        if(file){
-          const ref = storage.ref().child(`product_images/${Date.now()}_${file.name}`);
-          const snap = await ref.put(file); imageUrl = await snap.ref.getDownloadURL();
-        }
-        await db.collection('products').add({ name, price, stock, category, note, imageUrl, hidden:false });
-        alert('Produk ditambahkan');
-        // clear fields
-        document.getElementById('pName').value=''; document.getElementById('pPrice').value=''; document.getElementById('pStock').value=''; document.getElementById('pCategory').value=''; document.getElementById('pNote').value=''; pImageInput.value='';
-      }catch(err){ console.error(err); alert('Gagal tambah produk: '+err.message); }
-    });
-
-    // render admin products
-    function renderAdminProducts(){
-      const container = document.getElementById('adminProductList'); container.innerHTML='';
-      PRODUCTS.forEach(p=>{
-        const card = document.createElement('div'); card.className='product-card'; card.style.border = '1px solid #eef2f6';
-        card.innerHTML = `
-          <div class="product-image">${p.imageUrl? `<img src="${p.imageUrl}"/>` : `<div style=\"font-weight:700;color:#9aa3b2\">${(p.name.split(' ').map(w=>w[0]).slice(0,2).join(''))}</div>`}</div>
-          <div style="padding:10px">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div>
-                <div style="font-weight:700">${p.name}</div>
-                <div class="muted small">${p.category} • ${formatRupiah(p.price)}</div>
-                <div class="muted small">Stok: ${p.stock}</div>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:8px">
-                <div>
-                  <button class="btn btn-ghost" data-admin-action="toggleHide" data-id="${p.id}">${p.hidden? 'Unhide' : 'Hide'}</button>
-                  <button class="btn btn-ghost" data-admin-action="edit" data-id="${p.id}">Edit</button>
-                </div>
-                <div>
-                  <button class="btn" data-admin-action="delete" data-id="${p.id}" style="background:#fff;border:1px solid #f3dcdc">Hapus</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // admin actions (delegate)
-    document.getElementById('adminProductList').addEventListener('click', async (e)=>{
-      const action = e.target.dataset.adminAction; const id = e.target.dataset.id; if(!action) return;
-      if(action === 'toggleHide'){
-        const docRef = db.collection('products').doc(id); const doc = await docRef.get(); const now = doc.data(); await docRef.update({ hidden: !now.hidden });
-      }
-      if(action === 'delete'){
-        if(!confirm('Hapus produk?')) return; await db.collection('products').doc(id).delete();
-      }
-      if(action === 'edit'){
-        // simple edit prompt flow
-        const doc = await db.collection('products').doc(id).get(); const p = doc.data();
-        const name = prompt('Nama', p.name); const price = Number(prompt('Harga', p.price)); const stock = Number(prompt('Stok', p.stock)); const category = prompt('Kategori', p.category); const note = prompt('Catatan', p.note||'');
-        if(name) await db.collection('products').doc(id).update({ name, price, stock, category, note });
-      }
-    });
-
-    // ======= Orders listing for admin =======
-    function initOrdersListener(){
-      db.collection('orders').orderBy('createdAt','desc').onSnapshot(snapshot=>{
-        const list = document.getElementById('orderList'); list.innerHTML='';
-        snapshot.forEach(doc=>{ const o = doc.data(); o.id = doc.id;
-          const el = document.createElement('div'); el.className='card'; el.style.marginBottom='8px';
-          el.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center">
-              <div>
-                <div style="font-weight:700">Order ${o.id}</div>
-                <div class="muted small">${o.name} • ${o.room} • ${o.status || 'pending'}</div>
-              </div>
-              <div style="text-align:right">
-                <div>${o.total ? formatRupiah(o.total) : '-'}</div>
-                <div style="margin-top:8px"><button class="btn btn-ghost" data-order-action="markDone" data-id="${o.id}">Selesai</button></div>
-              </div>
-            </div>
-          `;
-          list.appendChild(el);
-        });
-      });
-    }
-    initOrdersListener();
-
-    document.getElementById('orderList').addEventListener('click', async (e)=>{
-      const action = e.target.dataset.orderAction; const id = e.target.dataset.id; if(!action) return;
-      if(action === 'markDone'){
-        await db.collection('orders').doc(id).update({ status: 'done' });
-      }
-    });
-
-    // initial
-    renderCart();
-
-    // helpful dev: if no products exist, create sample data (comment out in production)
-    async function seedIfEmpty(){
-      const snap = await db.collection('products').limit(1).get(); if(!snap.empty) return;
-      const samples = [
-        {name:'Indomie Goreng', price:3500, stock:20, category:'Makanan Ringan', note:'', imageUrl:'', hidden:false},
-        {name:'Aqua 600ml', price:5000, stock:30, category:'Minuman', note:'', imageUrl:'', hidden:false},
-        {name:'Pulpen', price:2000, stock:100, category:'Alat Tulis', note:'', imageUrl:'', hidden:false},
-      ];
-      for(const s of samples) await db.collection('products').add(s);
-    }
-    //seedIfEmpty(); // uncomment to seed on first run
-  </script>
+<script src="firebase.js"></script>
+<script src="shop.js"></script>
 </body>
 </html>
