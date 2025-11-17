@@ -1,18 +1,4 @@
-<!--
-  File: koperasi-whatsapp-checkout.html
-  Single-file MVP untuk "Koperasi Delivery" (checkout -> WhatsApp Desktop)
 
-  Cara pakai cepat:
-  1. Buka file ini di browser (double-click) untuk testing lokal.
-  2. Edit const adminNumber di bagian <script> untuk ganti nomor admin (format internasional tanpa +, contoh: 6281234567890).
-  3. Untuk tambah/ubah produk: edit array PRODUCTS di bagian <script>.
-  4. Setelah OK, push file ini ke repo GitHub, lalu hubungkan repo ke Netlify/Vercel/GitHub Pages.
-
-  Catatan:
-  - Semua data disimpan client-side (localStorage). Tidak ada backend.
-  - Checkout membuka WhatsApp via link https://wa.me/<admin>?text=... -> jika pengguna pakai WhatsApp Desktop, desktop app akan terbuka.
-  - Pesan format: === PESANAN BARU === (sesuai request)
--->
 
 <!doctype html>
 <html lang="id">
@@ -66,8 +52,8 @@
   <header>
     <div class="container hero">
       <div>
-        <h1>Koperasi Delivery — Checkout via WhatsApp</h1>
-        <div class="small">Tambah barang ke keranjang → Checkout → WhatsApp Desktop terbuka otomatis</div>
+        <h1>Go-Pin</h1>
+        <div class="small">Males ke kopin? Gopin aja dulu!</div>
       </div>
     </div>
   </header>
@@ -114,7 +100,7 @@
             </div>
             <div style="text-align:right">
               <div class="muted small">Ongkir</div>
-              <div><input id="shippingFee" value="2000" style="width:92px" /></div>
+			  <div id="subtotalText" style="font-weight:700">Rp2000</div>
             </div>
           </div>
 
@@ -123,7 +109,7 @@
             <button id="copyMsg" style="padding:10px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer">Copy pesan</button>
           </div>
 
-          <div style="margin-top:8px;font-size:13px;color:var(--muted)">Catatan: Pembayaran via COD / transfer melalui chat WA</div>
+          <div style="margin-top:8px;font-size:13px;color:var(--muted)">Catatan: Pembayaran via COD</div>
         </div>
       </aside>
 
@@ -131,12 +117,12 @@
   </main>
 
   <footer>
-    <div class="small">Tips: ubah <code>const adminNumber</code> di script untuk mengganti nomor admin. Produk dan harga ada di array <code>PRODUCTS</code>.</div>
+    <div class="small">part of Ercava Development Program</code>.</div>
   </footer>
 
   <script>
     // ======= KONFIGURASI =======
-    const adminNumber = "62182163556632"; // ganti dengan nomor admin (format internasional tanpa +)
+    const adminNumber = "6282163556632"; // ganti dengan nomor admin (format internasional tanpa +)
     const LS_KEY = 'koperasi_cart_v1';
 
     // ======= DAFTAR PRODUK (DUMMY) =======
