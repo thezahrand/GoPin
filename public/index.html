@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Go-Pin Quick Shop</title>
+<link href="/styles.css" rel="stylesheet">
+</head>
+<body>
+<header class="site-header">
+<div class="container">
+<h1>GOPIN</h1>
+<nav class="nav">
+<a href="/signup.html" class="btn">Sign Up</a>
+<a href="/login.html" class="btn btn-outline">Login</a>
+</nav>
+</div>
+</header>
+
+
+<main class="container">
+<section class="searchbar card">
+<input id="search" placeholder="Cari produk..." />
+<select id="categoryFilter"><option value="all">Semua kategori</option></select>
+</section>
+
+
+<section class="layout">
+<div class="products card" id="productGrid"></div>
+<aside class="cart card">
+<h3>Keranjang</h3>
+<div id="cartList">Keranjang kosong</div>
+<div class="form-group">
+<label>Nama</label>
+<input id="buyerName" placeholder="Nama" />
+</div>
+<div class="form-group">
+<label>Kamar / Asrama</label>
+<input id="room" placeholder="Kamar" />
+</div>
+<div class="form-row">
+<div>
+<div class="muted">Subtotal</div>
+<div id="subtotalText">Rp0</div>
+</div>
+<div>
+<div class="muted">Ongkir</div>
+<input id="shippingFee" value="2000" />
+</div>
+</div>
+<div class="actions">
+<button id="checkoutBtn" class="btn btn-primary">Checkout via WhatsApp</button>
+<button id="copyMsg" class="btn btn-outline">Copy pesan</button>
+</div>
+</aside>
+</section>
+</main>
+
+
+<footer class="container muted">Built for school koperasi — MVP</footer>
+
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+
+
+<script type="module" src="/src/firebase.js"></script>
+<script type="module" src="/src/shop.js"></script>
+</body>
+</html>
