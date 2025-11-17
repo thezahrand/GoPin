@@ -6,6 +6,49 @@
 <title>Go-Pin Quick Shop</title>
 <link href="/styles.css" rel="stylesheet">
 </head>
+  <header class="header">
+  <div class="logo">Go-Pin</div>
+  <nav class="nav">
+    <a href="signup.html" class="nav-btn">Signup</a>
+    <a href="login.html" class="nav-btn">Login</a>
+  </nav>
+</header>
+
+<style>
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    background: white;
+    border-bottom: 1px solid #e5e5e5;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a73e8;
+  }
+
+  .nav-btn {
+    margin-left: 20px;
+    padding: 8px 18px;
+    background: #1a73e8;
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.2s;
+  }
+
+  .nav-btn:hover {
+    background: #1558b0;
+  }
+</style>
+
 <body>
 <header class="site-header">
 <div class="container">
