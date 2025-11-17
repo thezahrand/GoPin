@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Admin — Koperasi Delivery</title>
+<link href="/styles.css" rel="stylesheet">
+</head>
+<body>
+<header class="site-header">
+<div class="container">
+<h1>Admin Panel</h1>
+<nav class="nav"><a href="/" class="btn btn-outline">Shop</a><button id="logoutBtn" class="btn btn-outline">Logout</button></nav>
+</div>
+</header>
+
+
+<main class="container">
+<section class="card">
+<h2>Tambah Produk</h2>
+<div class="form-row">
+<input id="pName" placeholder="Nama produk" />
+<input id="pPrice" placeholder="Harga (angka)" />
+<input id="pStock" placeholder="Stok" />
+<input id="pCategory" placeholder="Kategori" />
+</div>
+<div class="form-row" style="margin-top:8px;gap:8px;align-items:center">
+<input id="pNote" placeholder="Catatan (opsional)" />
+<input id="pImage" type="file" accept="image/*" />
+<button id="addProduct" class="btn btn-primary">Tambah</button>
+</div>
+</section>
+
+
+<section class="card" style="margin-top:12px">
+<h2>Produk</h2>
+<div id="adminProductList" class="product-grid"></div>
+</section>
+
+
+<section class="card" style="margin-top:12px">
+<h2>Orders</h2>
+<div id="orderList"></div>
+</section>
+</main>
+
+
+<footer class="container muted">Admin: hanya untuk akun dengan role = "admin"</footer>
+
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+
+
+<script type="module" src="/src/firebase.js"></script>
+<script type="module" src="/src/admin.js"></script>
+</body>
+</html>
