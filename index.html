@@ -1,62 +1,333 @@
+<!--
+  File: koperasi-whatsapp-checkout.html
+  Single-file MVP untuk "Koperasi Delivery" (checkout -> WhatsApp Desktop)
+
+  Cara pakai cepat:
+  1. Buka file ini di browser (double-click) untuk testing lokal.
+  2. Edit const adminNumber di bagian <script> untuk ganti nomor admin (format internasional tanpa +, contoh: 6281234567890).
+  3. Untuk tambah/ubah produk: edit array PRODUCTS di bagian <script>.
+  4. Setelah OK, push file ini ke repo GitHub, lalu hubungkan repo ke Netlify/Vercel/GitHub Pages.
+
+  Catatan:
+  - Semua data disimpan client-side (localStorage). Tidak ada backend.
+  - Checkout membuka WhatsApp via link https://wa.me/<admin>?text=... -> jika pengguna pakai WhatsApp Desktop, desktop app akan terbuka.
+  - Pesan format: === PESANAN BARU === (sesuai request)
+-->
+
 <!doctype html>
-<section class="layout">
-<div class="card">
-<div class="controls">
-<select id="categoryFilter"><option value="all">Semua kategori</option></select>
-<input id="search" placeholder="Cari produk..." />
-<div class="muted" style="margin-left:auto">Total: <span id="prodCount">0</span></div>
-</div>
-<div id="productGrid" class="grid"></div>
-</div>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Koperasi Delivery — Checkout via WhatsApp</title>
+  <style>
+    :root{--bg:#f6f7fb;--card:#fff;--accent:#0b7b4f;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial; margin:0;background:var(--bg);color:#111}
+    header{background:linear-gradient(90deg,#0b7b4f, #0ea37f);color:#fff;padding:18px 20px}
+    .container{max-width:1100px;margin:18px auto;padding:0 16px}
+    .hero{display:flex;align-items:center;gap:16px}
+    .hero h1{margin:0;font-size:20px}
+    .layout{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:16px}
+    .card{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 6px 18px rgba(12,15,20,0.06)}
 
+    /* product grid */
+    .controls{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    .controls select, .controls input{padding:8px;border-radius:8px;border:1px solid #e6e9ef;background:#fff}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+    .product{padding:10px;border-radius:8px;background:linear-gradient(180deg,#fff,#fbfdff);display:flex;gap:10px;align-items:center}
+    .product .img{width:72px;height:72px;border-radius:8px;background:#f0f3f8;display:flex;align-items:center;justify-content:center;font-weight:600;color:#9aa3b2}
+    .product h3{margin:0;font-size:14px}
+    .product p{margin:6px 0 0 0;font-size:13px;color:var(--muted)}
+    .product .meta{margin-left:auto;text-align:right}
+    .product button{margin-top:8px;padding:6px 10px;border-radius:8px;border:0;background:var(--accent);color:#fff;cursor:pointer}
 
-<aside class="card sidebar">
-<h3>Keranjang</h3>
-<div id="cartList" class="cart-list"><div class="muted">Keranjang kosong</div></div>
+    /* cart */
+    .cart-title{display:flex;align-items:center;justify-content:space-between}
+    .cart-list{max-height:420px;overflow:auto;margin-top:8px}
+    .cart-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed #eee}
+    .cart-item .left{flex:1}
+    .cart-item .right{text-align:right}
+    .qty{display:inline-flex;align-items:center;gap:6px}
+    .qty button{padding:6px 8px;border-radius:6px;border:1px solid #ddd;background:#fff}
+    .muted{color:var(--muted)}
 
+    .checkout-row{margin-top:12px}
+    .checkout-row input{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9ef}
+    .btn-wa{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:0;background:#128C7E;color:#fff;cursor:pointer}
+    .small{font-size:13px}
 
-<div style="margin-top:10px">
-<label class="small muted">Nama</label>
-<input id="buyerName" placeholder="Nama" />
-<label class="small muted">Kamar</label>
-<input id="room" placeholder="Kamar" />
-</div>
+    footer{max-width:1100px;margin:18px auto;color:var(--muted);padding:0 16px}
 
+    @media (max-width:900px){.layout{grid-template-columns:1fr} .cart {order: -1}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container hero">
+      <div>
+        <h1>Koperasi Delivery — Checkout via WhatsApp</h1>
+        <div class="small">Tambah barang ke keranjang → Checkout → WhatsApp Desktop terbuka otomatis</div>
+      </div>
+    </div>
+  </header>
 
-<div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
-<div>
-<div class="muted small">Subtotal</div>
-<div id="subtotalText" class="price">Rp0</div>
-</div>
-<div>
-<div class="muted small">Ongkir</div>
-<input id="shippingFee" value="2000" style="width:88px" />
-</div>
-</div>
+  <main class="container">
+    <div class="layout">
 
+      <section>
+        <div class="card">
+          <div class="controls">
+            <select id="categoryFilter">
+              <option value="all">Semua kategori</option>
+            </select>
+            <input id="search" placeholder="Cari produk..." />
+            <div style="margin-left:auto;font-size:13px;color:var(--muted)">Total produk: <span id="prodCount">0</span></div>
+          </div>
 
-<div style="margin-top:12px;display:flex;gap:8px">
-<button id="checkoutBtn" class="btn primary">Checkout via WhatsApp</button>
-<button id="copyMsg" class="btn">Copy pesan</button>
-</div>
+          <div id="productGrid" class="grid"></div>
+        </div>
+      </section>
 
+      <aside class="card" style="position:relative">
+        <div class="cart-title">
+          <h3>Keranjang</h3>
+          <div class="muted small">tersimpan di browser</div>
+        </div>
 
-<div class="muted small" style="margin-top:8px">Catatan: Pembayaran via COD / transfer melalui chat WA</div>
-</aside>
-</section>
-</main>
+        <div class="cart-list" id="cartList">
+          <div class="muted">Keranjang kosong</div>
+        </div>
 
+        <div style="margin-top:8px">
+          <div class="small muted">Nama pembeli</div>
+          <input id="buyerName" placeholder="Contoh: Budi" />
+          <div class="small muted" style="margin-top:8px">Kamar / Asrama</div>
+          <input id="room" placeholder="Contoh: Kamar A-12" />
+        </div>
 
-<footer class="container muted small">Made for school koperasi — Go-Pin</footer>
+        <div class="checkout-row">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+            <div>
+              <div class="muted small">Subtotal</div>
+              <div id="subtotalText" style="font-weight:700">Rp0</div>
+            </div>
+            <div style="text-align:right">
+              <div class="muted small">Ongkir</div>
+              <div><input id="shippingFee" value="2000" style="width:92px" /></div>
+            </div>
+          </div>
 
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button class="btn-wa" id="checkoutBtn">Checkout via WhatsApp</button>
+            <button id="copyMsg" style="padding:10px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer">Copy pesan</button>
+          </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
+          <div style="margin-top:8px;font-size:13px;color:var(--muted)">Catatan: Pembayaran via COD / transfer melalui chat WA</div>
+        </div>
+      </aside>
 
+    </div>
+  </main>
 
-<script src="firebase.js"></script>
-<script src="shop.js"></script>
+  <footer>
+    <div class="small">Tips: ubah <code>const adminNumber</code> di script untuk mengganti nomor admin. Produk dan harga ada di array <code>PRODUCTS</code>.</div>
+  </footer>
+
+  <script>
+    // ======= KONFIGURASI =======
+    const adminNumber = "62182163556632"; // ganti dengan nomor admin (format internasional tanpa +)
+    const LS_KEY = 'koperasi_cart_v1';
+
+    // ======= DAFTAR PRODUK (DUMMY) =======
+    // Field: id, name, price (angka), category, note(optional)
+    const PRODUCTS = [
+      {id: 'p1', name: 'Indomie Goreng', price: 3500, category:'Makanan Ringan'},
+      {id: 'p2', name: 'Chitato 68g', price: 7000, category:'Makanan Ringan'},
+      {id: 'p3', name: 'Aqua 600ml', price: 5000, category:'Minuman'},
+      {id: 'p4', name: 'Teh Botol 330ml', price: 5000, category:'Minuman'},
+      {id: 'p5', name: 'Sikat Gigi', price: 8000, category:'Alat Mandi'},
+      {id: 'p6', name: 'Shampoo 100ml', price: 12000, category:'Alat Mandi'},
+      {id: 'p7', name: 'Buku Tulis 50lbr', price: 9000, category:'Alat Tulis'},
+      {id: 'p8', name: 'Pulpen', price: 2000, category:'Alat Tulis'},
+      {id: 'p9', name: 'Nasi Kotak', price: 15000, category:'Makanan Berat'},
+      {id: 'p10', name: 'Ayam Goreng 1pcs', price: 12000, category:'Makanan Berat'},
+    ];
+
+    // ======= UTIL =======
+    function formatRupiah(num){
+      return 'Rp' + Number(num).toLocaleString('id-ID');
+    }
+
+    function saveCart(cart){
+      localStorage.setItem(LS_KEY, JSON.stringify(cart));
+    }
+    function loadCart(){
+      try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {} }catch(e){return {}}
+    }
+
+    // ======= INIT UI =======
+    const categoryFilter = document.getElementById('categoryFilter');
+    const productGrid = document.getElementById('productGrid');
+    const prodCount = document.getElementById('prodCount');
+    const searchInput = document.getElementById('search');
+
+    // populate categories
+    const categories = Array.from(new Set(PRODUCTS.map(p=>p.category)));
+    categories.forEach(cat => {
+      const opt = document.createElement('option'); opt.value = cat; opt.textContent = cat; categoryFilter.appendChild(opt);
+    });
+
+    function renderProducts(){
+      const q = searchInput.value.trim().toLowerCase();
+      const cat = categoryFilter.value;
+      productGrid.innerHTML = '';
+      const filtered = PRODUCTS.filter(p => (cat === 'all' || p.category === cat) && (p.name.toLowerCase().includes(q) || (p.note||'').toLowerCase().includes(q)));
+      prodCount.textContent = filtered.length;
+      filtered.forEach(p => {
+        const el = document.createElement('div'); el.className = 'product';
+        el.innerHTML = `
+          <div class="img">${p.name.split(' ').map(w=>w[0]).slice(0,2).join('')}</div>
+          <div>
+            <h3>${p.name}</h3>
+            <p class="muted">${p.category} • ${formatRupiah(p.price)}</p>
+            <div><button data-id="${p.id}">Tambah</button></div>
+          </div>
+          <div class="meta"></div>
+        `;
+        productGrid.appendChild(el);
+      });
+    }
+    renderProducts();
+
+    categoryFilter.addEventListener('change', renderProducts);
+    searchInput.addEventListener('input', renderProducts);
+
+    // ======= CART LOGIC =======
+    let cart = loadCart(); // object {productId: qty}
+
+    function addToCart(id, qty=1){
+      cart[id] = (cart[id]||0) + qty; saveCart(cart); renderCart();
+    }
+    function removeFromCart(id){ delete cart[id]; saveCart(cart); renderCart(); }
+    function setQty(id, qty){ if(qty<=0){ removeFromCart(id); return } cart[id] = qty; saveCart(cart); renderCart(); }
+
+    document.body.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button[data-id]');
+      if(btn){ addToCart(btn.dataset.id, 1); }
+    });
+
+    const cartList = document.getElementById('cartList');
+    const subtotalText = document.getElementById('subtotalText');
+
+    function renderCart(){
+      const ids = Object.keys(cart);
+      if(ids.length === 0){ cartList.innerHTML = '<div class="muted">Keranjang kosong</div>'; subtotalText.textContent = 'Rp0'; return }
+      cartList.innerHTML = '';
+      let subtotal = 0;
+      ids.forEach(id =>{
+        const qty = cart[id];
+        const prod = PRODUCTS.find(p=>p.id===id);
+        if(!prod) return;
+        subtotal += prod.price * qty;
+        const item = document.createElement('div'); item.className = 'cart-item';
+        item.innerHTML = `
+          <div class="left">
+            <div style="font-weight:700">${prod.name}</div>
+            <div class="muted small">${formatRupiah(prod.price)} • ${prod.category}</div>
+          </div>
+          <div class="right">
+            <div class="qty">
+              <button data-action="dec" data-id="${id}">-</button>
+              <div style="min-width:26px;text-align:center">${qty}</div>
+              <button data-action="inc" data-id="${id}">+</button>
+            </div>
+            <div style="margin-top:6px">${formatRupiah(prod.price*qty)}</div>
+            <div><button data-action="remove" style="margin-top:6px;padding:6px;border-radius:6px;border:1px solid #eee;background:#fff;">Hapus</button></div>
+          </div>
+        `;
+        cartList.appendChild(item);
+      });
+      subtotalText.textContent = formatRupiah(subtotal);
+    }
+
+    cartList.addEventListener('click', (e)=>{
+      const id = e.target.closest('[data-id]')?.dataset.id;
+      const action = e.target.closest('[data-action]')?.dataset.action || e.target.closest('[data-action]')?.dataset.action;
+      if(!id) return;
+      const act = e.target.closest('[data-action]')?.dataset.action;
+      if(!act) return;
+      if(act === 'inc') setQty(id, (cart[id]||0)+1);
+      if(act === 'dec') setQty(id, (cart[id]||0)-1);
+      if(act === 'remove') removeFromCart(id);
+    });
+
+    renderCart();
+
+    // ======= CHECKOUT / GENERATE WHATSAPP MESSAGE =======
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const copyMsgBtn = document.getElementById('copyMsg');
+    const buyerName = document.getElementById('buyerName');
+    const roomInput = document.getElementById('room');
+    const shippingFeeInput = document.getElementById('shippingFee');
+
+    function generateMessage(){
+      const name = buyerName.value.trim() || '---';
+      const room = roomInput.value.trim() || '---';
+      const ids = Object.keys(cart);
+      if(ids.length === 0) return null;
+      let subtotal = 0;
+      let lines = [];
+      let i=1;
+      ids.forEach(id=>{
+        const prod = PRODUCTS.find(p=>p.id===id);
+        const qty = cart[id];
+        if(!prod) return;
+        const line = `${i}. ${prod.name} — ${qty} pcs — ${formatRupiah(prod.price*qty)}`;
+        lines.push(line);
+        subtotal += prod.price*qty;
+        i++;
+      });
+      const shipping = Number(shippingFeeInput.value) || 0;
+      const total = subtotal + shipping;
+
+      let msg = `=== PESANAN BARU ===\nNama: ${name}\nKamar: ${room}\n\n`;
+      msg += lines.join('\n') + '\n\n';
+      msg += `Subtotal: ${formatRupiah(subtotal)}\nOngkir: ${formatRupiah(shipping)}\nTotal: ${formatRupiah(total)}\n`;
+      msg += '====================';
+      return msg;
+    }
+
+    function openWhatsApp(){
+      const msg = generateMessage();
+      if(!msg){ alert('Keranjang kosong! Tambah barang dulu.'); return }
+      const encoded = encodeURIComponent(msg);
+      const waUrl = `https://wa.me/${adminNumber}?text=${encoded}`;
+      window.open(waUrl, '_blank');
+    }
+
+    checkoutBtn.addEventListener('click', openWhatsApp);
+
+    copyMsgBtn.addEventListener('click', ()=>{
+      const msg = generateMessage();
+      if(!msg){ alert('Keranjang kosong!'); return }
+      navigator.clipboard.writeText(msg).then(()=>{
+        alert('Pesan disalin ke clipboard. Buka WhatsApp untuk mengirim.');
+      }).catch(()=>{ alert('Gagal menyalin. Silakan copy manual.'); });
+    });
+
+    // allow direct editing of shipping fee to update subtotal display
+    document.getElementById('shippingFee').addEventListener('input', ()=>{
+      // just update subtotal display to include shipping
+      const ids = Object.keys(cart);
+      let subtotal = 0;
+      ids.forEach(id=>{ const p = PRODUCTS.find(x=>x.id===id); if(p) subtotal += p.price * cart[id]; });
+      const shipping = Number(shippingFeeInput.value) || 0;
+      subtotalText.textContent = formatRupiah(subtotal + shipping);
+    });
+
+    // Shortcut: clear cart if needed (dev)
+    // localStorage.removeItem(LS_KEY);
+  </script>
 </body>
 </html>
