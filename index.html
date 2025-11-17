@@ -87,9 +87,9 @@
 
         <div style="margin-top:8px">
           <div class="small muted">Nama pembeli</div>
-          <input id="buyerName" placeholder="Contoh: Budi" />
+          <input id="buyerName" placeholder="Contoh: Kamilan" />
           <div class="small muted" style="margin-top:8px">Kamar / Asrama</div>
-          <input id="room" placeholder="Contoh: Kamar A-12" />
+          <input id="room" placeholder="Contoh: Kamar 200 I" />
         </div>
 
         <div class="checkout-row">
@@ -190,65 +190,81 @@
     searchInput.addEventListener('input', renderProducts);
 
     // ======= CART LOGIC =======
-    let cart = loadCart(); // object {productId: qty}
+  let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-    function addToCart(id, qty=1){
-      cart[id] = (cart[id]||0) + qty; saveCart(cart); renderCart();
+function saveCart() {
+    localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+function addToCart(id) {
+    const item = cart.find(x => x.id === id);
+
+    if (item) {
+        item.qty++;
+    } else {
+        const product = PRODUCTS.find(p => p.id === id);
+        cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            qty: 1
+        });
     }
-    function removeFromCart(id){ delete cart[id]; saveCart(cart); renderCart(); }
-    function setQty(id, qty){ if(qty<=0){ removeFromCart(id); return } cart[id] = qty; saveCart(cart); renderCart(); }
-
-    document.body.addEventListener('click', (e)=>{
-      const btn = e.target.closest('button[data-id]');
-      if(btn){ addToCart(btn.dataset.id, 1); }
-    });
-
-    const cartList = document.getElementById('cartList');
-    const subtotalText = document.getElementById('subtotalText');
-
-    function renderCart(){
-      const ids = Object.keys(cart);
-      if(ids.length === 0){ cartList.innerHTML = '<div class="muted">Keranjang kosong</div>'; subtotalText.textContent = 'Rp0'; return }
-      cartList.innerHTML = '';
-      let subtotal = 0;
-      ids.forEach(id =>{
-        const qty = cart[id];
-        const prod = PRODUCTS.find(p=>p.id===id);
-        if(!prod) return;
-        subtotal += prod.price * qty;
-        const item = document.createElement('div'); item.className = 'cart-item';
-        item.innerHTML = `
-          <div class="left">
-            <div style="font-weight:700">${prod.name}</div>
-            <div class="muted small">${formatRupiah(prod.price)} • ${prod.category}</div>
-          </div>
-          <div class="right">
-            <div class="qty">
-              <button data-action="dec" data-id="${id}">-</button>
-              <div style="min-width:26px;text-align:center">${qty}</div>
-              <button data-action="inc" data-id="${id}">+</button>
-            </div>
-            <div style="margin-top:6px">${formatRupiah(prod.price*qty)}</div>
-            <div><button data-action="remove" style="margin-top:6px;padding:6px;border-radius:6px;border:1px solid #eee;background:#fff;">Hapus</button></div>
-          </div>
-        `;
-        cartList.appendChild(item);
-      });
-      subtotalText.textContent = formatRupiah(subtotal);
-    }
-
-    cartList.addEventListener('click', (e)=>{
-      const id = e.target.closest('[data-id]')?.dataset.id;
-      const action = e.target.closest('[data-action]')?.dataset.action || e.target.closest('[data-action]')?.dataset.action;
-      if(!id) return;
-      const act = e.target.closest('[data-action]')?.dataset.action;
-      if(!act) return;
-      if(act === 'inc') setQty(id, (cart[id]||0)+1);
-      if(act === 'dec') setQty(id, (cart[id]||0)-1);
-      if(act === 'remove') removeFromCart(id);
-    });
-
+    saveCart();
     renderCart();
+}
+
+function decreaseItem(id) {
+    const item = cart.find(x => x.id === id);
+
+    if (!item) return;
+
+    if (item.qty > 1) {
+        item.qty--;
+    } else {
+        cart = cart.filter(x => x.id !== id);
+    }
+
+    saveCart();
+    renderCart();
+}
+
+function removeItem(id) {
+    cart = cart.filter(x => x.id !== id);
+    saveCart();
+    renderCart();
+}
+
+function getTotal() {
+    return cart.reduce((a, b) => a + (b.price * b.qty), 0);
+}
+
+function renderCart() {
+    const cartBox = document.getElementById("cart-items");
+    const totalBox = document.getElementById("cart-total");
+
+    cartBox.innerHTML = "";
+
+    cart.forEach(item => {
+        cartBox.innerHTML += `
+            <div class="cart-row">
+                <span>${item.name}</span>
+                <div class="cart-qty">
+                    <button onclick="decreaseItem(${item.id})">-</button>
+                    <span>${item.qty}</span>
+                    <button onclick="addToCart(${item.id})">+</button>
+                </div>
+
+                <strong>${(item.price * item.qty).toLocaleString()}</strong>
+
+                <button class="remove-btn" onclick="removeItem(${item.id})">🗑️</button>
+            </div>
+        `;
+    });
+
+    totalBox.textContent = getTotal().toLocaleString();
+}
+
 
     // ======= CHECKOUT / GENERATE WHATSAPP MESSAGE =======
     const checkoutBtn = document.getElementById('checkoutBtn');
