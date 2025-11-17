@@ -1,35 +1,4 @@
-<!--
-File: koperasi-delivery-app.html
-Single-file SPA (Shop + Admin) for "Koperasi Delivery".
 
-Features included (MVP with admin panel):
-- Modern card UI for product catalog
-- Category filter & search
-- Cart (guest or logged-in)
-- Checkout opens WhatsApp Desktop with formatted message (=== PESANAN BARU ===)
-- Optional login with Email/Password (Firebase Auth)
-- Admin area (route #/admin) protected by admin role
-  - Add / Edit / Hide / Delete products
-  - Upload product images (Firebase Storage)
-  - Update stock
-  - View orders and change status
-- If user logs in, name & room auto-fill and orders are recorded in Firestore
-- Guest orders: can checkout via WA without saving (but can copy message)
-
-How to use:
-1. Create a Firebase project at https://console.firebase.google.com
-2. Enable Email/Password Authentication, Firestore, and Storage.
-3. In Firestore, you'll have collections: products, users, orders (created automatically by app).
-4. Update the `firebaseConfig` object below with your project's config.
-5. In Firestore rules, during development, you can use permissive rules, but for production tighten them. See comments below.
-6. Open this file in browser for testing. Deploy single file to Netlify / GitHub Pages.
-
-Notes about security & rules (dev -> production):
-- For MVP/testing you may use relaxed rules but remember to restrict writes to admin users and authenticated users for orders.
-- Example rule idea (not implemented here): mark a field `role: 'admin'` in users collection, and require that only admin accounts can write to `products` collection.
-
-Replace ADMIN_WHATSAPP_NUMBER in the script with your admin number (international format, e.g. 6281234567890)
--->
 
 <!doctype html>
 <html lang="id">
@@ -92,7 +61,7 @@ Replace ADMIN_WHATSAPP_NUMBER in the script with your admin number (internationa
   <header>
     <div class="container hero">
       <div style="flex:1">
-        <h1>Koperasi Delivery</h1>
+        <h1>GO-PIN</h1>
         <div class="muted">Belanja via web & checkout ke WhatsApp. Admin panel untuk manage stok.</div>
       </div>
       <div class="topbar">
@@ -192,7 +161,7 @@ Replace ADMIN_WHATSAPP_NUMBER in the script with your admin number (internationa
   </main>
 
   <footer>
-    <div class="container small muted">Ganti <code>ADMIN_WHATSAPP_NUMBER</code> pada bagian script. Pastikan Firebase config diisi.</div>
+    <div class="container small muted">INI FOOTER </div>
   </footer>
 
   <!-- Firebase & App Script -->
@@ -206,14 +175,18 @@ Replace ADMIN_WHATSAPP_NUMBER in the script with your admin number (internationa
      * CONFIG: ganti ini dengan config firebase project kalian
      *************************************************************************/
     const firebaseConfig = {
-      apiKey: "REPLACE_ME",
-      authDomain: "REPLACE_ME",
-      projectId: "REPLACE_ME",
-      storageBucket: "REPLACE_ME",
-      messagingSenderId: "REPLACE_ME",
-      appId: "REPLACE_ME"
+ 
+
+      apiKey: "AIzaSyAyid18j6ylh3cYWJcTXhzVO0oZJz5COUY",
+      authDomain: "gopin-incen.firebaseapp.com",
+      projectId: "gopin-incen",
+      storageBucket: "gopin-incen.firebasestorage.app",
+      messagingSenderId: "334708169738",
+      appId: "1:334708169738:web:b89e56d663411049a293f3",
+
+
     };
-    const ADMIN_WHATSAPP_NUMBER = "6281234567890"; // ganti nomor admin
+    const ADMIN_WHATSAPP_NUMBER = "6282163556632"; // ganti nomor admin
     /*************************************************************************/
 
     // init firebase
