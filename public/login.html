@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Login — Koperasi Delivery</title>
+<link href="/styles.css" rel="stylesheet">
+</head>
+<body>
+<main class="container card auth-card">
+<h2>Login</h2>
+<div class="form-group">
+<label>Email</label>
+<input id="email" type="email" />
+</div>
+<div class="form-group">
+<label>Password</label>
+<input id="password" type="password" />
+</div>
+<div class="actions">
+<button id="loginBtn" class="btn btn-primary">Login</button>
+<a href="/signup.html" class="btn btn-outline">Sign Up</a>
+</div>
+<div id="message" class="muted"></div>
+</main>
+
+
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script type="module" src="/src/firebase.js"></script>
+<script type="module" src="/src/auth.js"></script>
+</body>
+</html>
